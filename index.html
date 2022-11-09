@@ -56,17 +56,9 @@
 </body>
 <script src="jquery-1.4.2.min.js" tppabs="http://fc.liflag.cn/lib/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="dynamicaudio-min.js" tppabs="http://fc.liflag.cn/lib/dynamicaudio-min.js" type="text/javascript" charset="utf-8"></script>
-<script src="nes.js" tppabs="http://fc.liflag.cn/source/nes.js" type="text/javascript" charset="utf-8"></script>
-<script src="utils.js" tppabs="http://fc.liflag.cn/source/utils.js" type="text/javascript" charset="utf-8"></script>
-<script src="cpu.js" tppabs="http://fc.liflag.cn/source/cpu.js" type="text/javascript" charset="utf-8"></script>
-<script src="keyboard.js" tppabs="http://fc.liflag.cn/source/keyboard.js" type="text/javascript" charset="utf-8"></script>
-<script src="mappers.js" tppabs="http://fc.liflag.cn/source/mappers.js" type="text/javascript" charset="utf-8"></script>
-<script src="papu.js" tppabs="http://fc.liflag.cn/source/papu.js" type="text/javascript" charset="utf-8"></script>
-<script src="ppu.js" tppabs="http://fc.liflag.cn/source/ppu.js" type="text/javascript" charset="utf-8"></script>
-<script src="rom.js" tppabs="http://fc.liflag.cn/source/rom.js" type="text/javascript" charset="utf-8"></script>
-<script src="ui.js" tppabs="http://fc.liflag.cn/source/ui.js" type="text/javascript" charset="utf-8"></script>
 <script src="debug.js" tppabs="http://fc.liflag.cn/lib/debug.js" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript" charset="utf-8">
+<script type ="module" type="text/javascript" charset="utf-8">
+    import { JSNES } from './nes.js'
     var nes;
     $(function() {
         nes = new JSNES({

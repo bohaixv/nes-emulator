@@ -16,108 +16,108 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-JSNES.PAPU = function(nes) {
-    this.nes = nes;
+class PAPU {
+    constructor(nes) {
+        this.nes = nes;
     
-    this.square1 = new JSNES.PAPU.ChannelSquare(this, true);
-    this.square2 = new JSNES.PAPU.ChannelSquare(this, false);
-    this.triangle = new JSNES.PAPU.ChannelTriangle(this);
-    this.noise = new JSNES.PAPU.ChannelNoise(this);
-    this.dmc = new JSNES.PAPU.ChannelDM(this);
-
-    this.frameIrqCounter = null;
-    this.frameIrqCounterMax = 4;
-    this.initCounter = 2048;
-    this.channelEnableValue = null;
-
-    this.bufferSize = 8192;
-    this.bufferIndex = 0;
-    this.sampleRate = 44100;
-
-    this.lengthLookup = null;
-    this.dmcFreqLookup = null;
-    this.noiseWavelengthLookup = null;
-    this.square_table = null;
-    this.tnd_table = null;
-    this.sampleBuffer = new Array(this.bufferSize*2);
-
-    this.frameIrqEnabled = false;
-    this.frameIrqActive = null;
-    this.frameClockNow = null;
-    this.startedPlaying=false;
-    this.recordOutput = false;
-    this.initingHardware = false;
-
-    this.masterFrameCounter = null;
-    this.derivedFrameCounter = null;
-    this.countSequence = null;
-    this.sampleTimer = null;
-    this.frameTime = null;
-    this.sampleTimerMax = null;
-    this.sampleCount = null;
-    this.triValue = 0;
-
-    this.smpSquare1 = null;
-    this.smpSquare2 = null;
-    this.smpTriangle = null;
-    this.smpDmc = null;
-    this.accCount = null;
-
-    // DC removal vars:
-    this.prevSampleL = 0;
-    this.prevSampleR = 0;
-    this.smpAccumL = 0;
-    this.smpAccumR = 0;
-
-    // DAC range:
-    this.dacRange = 0;
-    this.dcValue = 0;
-
-    // Master volume:
-    this.masterVolume = 256;
-
-    // Stereo positioning:
-    this.stereoPosLSquare1 = null;
-    this.stereoPosLSquare2 = null;
-    this.stereoPosLTriangle = null;
-    this.stereoPosLNoise = null;
-    this.stereoPosLDMC = null;
-    this.stereoPosRSquare1 = null;
-    this.stereoPosRSquare2 = null;
-    this.stereoPosRTriangle = null;
-    this.stereoPosRNoise = null;
-    this.stereoPosRDMC = null;
-
-    this.extraCycles = null;
+        this.square1 = new ChannelSquare(this, true);
+        this.square2 = new ChannelSquare(this, false);
+        this.triangle = new ChannelTriangle(this);
+        this.noise = new ChannelNoise(this);
+        this.dmc = new ChannelDM(this);
     
-    this.maxSample = null;
-    this.minSample = null;
+        this.frameIrqCounter = null;
+        this.frameIrqCounterMax = 4;
+        this.initCounter = 2048;
+        this.channelEnableValue = null;
     
-    // Panning:
-    this.panning = [80, 170, 100, 150, 128];
-    this.setPanning(this.panning);
-
-    // Initialize lookup tables:
-    this.initLengthLookup();
-    this.initDmcFrequencyLookup();
-    this.initNoiseWavelengthLookup();
-    this.initDACtables();
+        this.bufferSize = 8192;
+        this.bufferIndex = 0;
+        this.sampleRate = 44100;
     
-    // Init sound registers:
-    for (var i = 0; i < 0x14; i++) {
-        if (i === 0x10){
-            this.writeReg(0x4010, 0x10);
+        this.lengthLookup = null;
+        this.dmcFreqLookup = null;
+        this.noiseWavelengthLookup = null;
+        this.square_table = null;
+        this.tnd_table = null;
+        this.sampleBuffer = new Array(this.bufferSize*2);
+    
+        this.frameIrqEnabled = false;
+        this.frameIrqActive = null;
+        this.frameClockNow = null;
+        this.startedPlaying=false;
+        this.recordOutput = false;
+        this.initingHardware = false;
+    
+        this.masterFrameCounter = null;
+        this.derivedFrameCounter = null;
+        this.countSequence = null;
+        this.sampleTimer = null;
+        this.frameTime = null;
+        this.sampleTimerMax = null;
+        this.sampleCount = null;
+        this.triValue = 0;
+    
+        this.smpSquare1 = null;
+        this.smpSquare2 = null;
+        this.smpTriangle = null;
+        this.smpDmc = null;
+        this.accCount = null;
+    
+        // DC removal vars:
+        this.prevSampleL = 0;
+        this.prevSampleR = 0;
+        this.smpAccumL = 0;
+        this.smpAccumR = 0;
+    
+        // DAC range:
+        this.dacRange = 0;
+        this.dcValue = 0;
+    
+        // Master volume:
+        this.masterVolume = 256;
+    
+        // Stereo positioning:
+        this.stereoPosLSquare1 = null;
+        this.stereoPosLSquare2 = null;
+        this.stereoPosLTriangle = null;
+        this.stereoPosLNoise = null;
+        this.stereoPosLDMC = null;
+        this.stereoPosRSquare1 = null;
+        this.stereoPosRSquare2 = null;
+        this.stereoPosRTriangle = null;
+        this.stereoPosRNoise = null;
+        this.stereoPosRDMC = null;
+    
+        this.extraCycles = null;
+        
+        this.maxSample = null;
+        this.minSample = null;
+        
+        // Panning:
+        this.panning = [80, 170, 100, 150, 128];
+        this.setPanning(this.panning);
+    
+        // Initialize lookup tables:
+        this.initLengthLookup();
+        this.initDmcFrequencyLookup();
+        this.initNoiseWavelengthLookup();
+        this.initDACtables();
+        
+        // Init sound registers:
+        for (var i = 0; i < 0x14; i++) {
+            if (i === 0x10){
+                this.writeReg(0x4010, 0x10);
+            }
+            else {
+                this.writeReg(0x4000 + i, 0);
+            }
         }
-        else {
-            this.writeReg(0x4000 + i, 0);
-        }
+        
+        this.reset();
     }
-    
-    this.reset();
-};
 
-JSNES.PAPU.prototype = {
-    reset: function() {
+    reset() {
         this.sampleRate = this.nes.opts.sampleRate;
         this.sampleTimerMax = Math.floor(
             (1024.0 * this.nes.opts.CPU_FREQ_NTSC *
@@ -168,9 +168,9 @@ JSNES.PAPU.prototype = {
     
         this.maxSample = -500000;
         this.minSample = 500000;
-    },
+    }
 
-    readReg: function(address){
+    readReg(address){
         // Read 0x4015:
         var tmp = 0;
         tmp |= (this.square1.getLengthStatus()   );
@@ -185,9 +185,9 @@ JSNES.PAPU.prototype = {
         this.dmc.irqGenerated = false;
     
         return tmp & 0xFFFF;
-    },
+    }
 
-    writeReg: function(address, value){
+    writeReg(address, value){
         if (address >= 0x4000 && address < 0x4004) {
             // Square Wave 1 Control
             this.square1.writeReg(address, value);
@@ -258,35 +258,35 @@ JSNES.PAPU.prototype = {
                 this.frameCounterTick();
             }
         }
-    },
+    }
 
-    resetCounter: function(){
+    resetCounter(){
         if (this.countSequence === 0) {
             this.derivedFrameCounter = 4;
         }else{
             this.derivedFrameCounter = 0;
         }
-    },
+    }
 
     // Updates channel enable status.
     // This is done on writes to the
     // channel enable register (0x4015),
     // and when the user enables/disables channels
     // in the GUI.
-    updateChannelEnable: function(value){
+    updateChannelEnable(value){
         this.channelEnableValue = value&0xFFFF;
         this.square1.setEnabled((value&1) !== 0);
         this.square2.setEnabled((value&2) !== 0);
         this.triangle.setEnabled((value&4) !== 0);
         this.noise.setEnabled((value&8) !== 0);
         this.dmc.setEnabled((value&16) !== 0);
-    },
+    }
 
     // Clocks the frame counter. It should be clocked at
     // twice the cpu speed, so the cycles will be
     // divided by 2 for those counters that are
     // clocked at cpu speed.
-    clockFrameCounter: function(nCycles){
+    clockFrameCounter(nCycles){
         if (this.initCounter > 0) {
             if (this.initingHardware) {
                 this.initCounter -= nCycles;
@@ -450,9 +450,9 @@ JSNES.PAPU.prototype = {
             this.sample();
             this.sampleTimer -= this.sampleTimerMax;
         }
-    },
+    }
 
-    accSample: function(cycles) {
+    accSample(cycles) {
         // Special treatment for triangle channel - need to interpolate.
         if (this.triangle.sampleCondition) {
             this.triValue = Math.floor((this.triangle.progTimerCount << 4) /
@@ -495,9 +495,9 @@ JSNES.PAPU.prototype = {
         
         }
     
-    },
+    }
 
-    frameCounterTick: function(){
+    frameCounterTick(){
     
         this.derivedFrameCounter++;
         if (this.derivedFrameCounter >= this.frameIrqCounterMax) {
@@ -536,12 +536,12 @@ JSNES.PAPU.prototype = {
     
         // End of 240Hz tick
     
-    },
+    }
 
 
     // Samples the channels, mixes the output together,
     // writes to buffer and (if enabled) file.
-    sample: function(){
+    sample(){
         var sq_index, tnd_index;
         
         if (this.accCount > 0) {
@@ -644,34 +644,34 @@ JSNES.PAPU.prototype = {
         this.smpTriangle = 0;
         this.smpDmc = 0;
 
-    },
+    }
 
-    getLengthMax: function(value){
+    getLengthMax(value){
         return this.lengthLookup[value >> 3];
-    },
+    }
 
-    getDmcFrequency: function(value){
+    getDmcFrequency(value){
         if (value >= 0 && value < 0x10) {
             return this.dmcFreqLookup[value];
         }
         return 0;
-    },
+    }
 
-    getNoiseWaveLength: function(value){
+    getNoiseWaveLength(value){
         if (value >= 0 && value < 0x10) {
             return this.noiseWavelengthLookup[value];
         }
         return 0;
-    },
+    }
 
-    setPanning: function(pos){
+    setPanning(pos){
         for (var i = 0; i < 5; i++) {
             this.panning[i] = pos[i];
         }
         this.updateStereoPos();
-    },
+    }
 
-    setMasterVolume: function(value){
+    setMasterVolume(value){
         if (value < 0) {
             value = 0;
         }
@@ -680,9 +680,9 @@ JSNES.PAPU.prototype = {
         }
         this.masterVolume = value;
         this.updateStereoPos();
-    },
+    }
 
-    updateStereoPos: function(){
+    updateStereoPos(){
         this.stereoPosLSquare1 = (this.panning[0] * this.masterVolume) >> 8;
         this.stereoPosLSquare2 = (this.panning[1] * this.masterVolume) >> 8;
         this.stereoPosLTriangle = (this.panning[2] * this.masterVolume) >> 8;
@@ -694,9 +694,9 @@ JSNES.PAPU.prototype = {
         this.stereoPosRTriangle = this.masterVolume - this.stereoPosLTriangle;
         this.stereoPosRNoise = this.masterVolume - this.stereoPosLNoise;
         this.stereoPosRDMC = this.masterVolume - this.stereoPosLDMC;
-    },
+    }
 
-    initLengthLookup: function(){
+    initLengthLookup(){
 
         this.lengthLookup = [
             0x0A, 0xFE,
@@ -716,9 +716,9 @@ JSNES.PAPU.prototype = {
             0x10, 0x1C,
             0x20, 0x1E
         ];
-    },
+    }
 
-    initDmcFrequencyLookup: function(){
+    initDmcFrequencyLookup(){
 
         this.dmcFreqLookup = new Array(16);
 
@@ -740,9 +740,9 @@ JSNES.PAPU.prototype = {
         this.dmcFreqLookup[0xF] = 0x1B0;
         //for(int i=0;i<16;i++)dmcFreqLookup[i]/=8;
 
-    },
+    }
 
-    initNoiseWavelengthLookup: function(){
+    initNoiseWavelengthLookup(){
 
         this.noiseWavelengthLookup = new Array(16);
 
@@ -763,9 +763,9 @@ JSNES.PAPU.prototype = {
         this.noiseWavelengthLookup[0xE] = 0x7F2;
         this.noiseWavelengthLookup[0xF] = 0xFE4;
     
-    },
+    }
 
-    initDACtables: function(){
+    initDACtables(){
         var value, ival, i;
         var max_sqr = 0;
         var max_tnd = 0;
@@ -802,40 +802,40 @@ JSNES.PAPU.prototype = {
         this.dcValue = this.dacRange/2;
 
     }
-};
+}
 
+class ChannelDM {
+    constructor(papu) {
+        this.papu = papu;
+    
+        this.MODE_NORMAL = 0;
+        this.MODE_LOOP = 1;
+        this.MODE_IRQ = 2;
+        
+        this.isEnabled = null;
+        this.hasSample = null;
+        this.irqGenerated = false;
+        
+        this.playMode = null;
+        this.dmaFrequency = null;
+        this.dmaCounter = null;
+        this.deltaCounter = null;
+        this.playStartAddress = null;
+        this.playAddress = null;
+        this.playLength = null;
+        this.playLengthCounter = null;
+        this.shiftCounter = null;
+        this.reg4012 = null;
+        this.reg4013 = null;
+        this.sample = null;
+        this.dacLsb = null;
+        this.data = null;
+        
+        this.reset();
+    }
 
-JSNES.PAPU.ChannelDM = function(papu) {
-    this.papu = papu;
     
-    this.MODE_NORMAL = 0;
-    this.MODE_LOOP = 1;
-    this.MODE_IRQ = 2;
-    
-    this.isEnabled = null;
-    this.hasSample = null;
-    this.irqGenerated = false;
-    
-    this.playMode = null;
-    this.dmaFrequency = null;
-    this.dmaCounter = null;
-    this.deltaCounter = null;
-    this.playStartAddress = null;
-    this.playAddress = null;
-    this.playLength = null;
-    this.playLengthCounter = null;
-    this.shiftCounter = null;
-    this.reg4012 = null;
-    this.reg4013 = null;
-    this.sample = null;
-    this.dacLsb = null;
-    this.data = null;
-    
-    this.reset();
-};
-    
-JSNES.PAPU.ChannelDM.prototype = {
-    clockDmc: function() {
+    clockDmc() {
     
         // Only alter DAC value if the sample buffer has data:
         if(this.hasSample) {
@@ -876,9 +876,9 @@ JSNES.PAPU.ChannelDM.prototype = {
             this.papu.nes.cpu.requestIrq(this.papu.nes.cpu.IRQ_NORMAL);
         }
     
-    },
+    }
 
-    endOfSample: function() {
+    endOfSample() {
         if (this.playLengthCounter === 0 && this.playMode === this.MODE_LOOP) {
         
             // Start from beginning of sample:
@@ -906,9 +906,9 @@ JSNES.PAPU.ChannelDM.prototype = {
         
         }
     
-    },
+    }
 
-    nextSample: function() {
+    nextSample() {
         // Fetch byte:
         this.data = this.papu.nes.mmap.load(this.playAddress);
         this.papu.nes.cpu.haltCycles(4);
@@ -920,9 +920,9 @@ JSNES.PAPU.ChannelDM.prototype = {
         }
     
         this.hasSample = true;
-    },
+    }
 
-    writeReg: function(address, value) {
+    writeReg(address, value) {
         if (address === 0x4010) {
         
             // Play mode, DMA Frequency
@@ -981,24 +981,24 @@ JSNES.PAPU.ChannelDM.prototype = {
             }
             this.irqGenerated = false;
         }
-    },
+    }
 
-    setEnabled: function(value) {
+    setEnabled(value) {
         if ((!this.isEnabled) && value) {
             this.playLengthCounter = this.playLength;
         }
         this.isEnabled = value;
-    },
+    }
 
-    getLengthStatus: function(){
+    getLengthStatus(){
         return ((this.playLengthCounter === 0 || !this.isEnabled) ? 0 : 1);
-    },
+    }
 
-    getIrqStatus: function(){
+    getIrqStatus(){
         return (this.irqGenerated ? 1 : 0);
-    },
+    }
 
-    reset: function(){
+    reset(){
         this.isEnabled = false;
         this.irqGenerated = false;
         this.playMode = this.MODE_NORMAL;
@@ -1016,39 +1016,39 @@ JSNES.PAPU.ChannelDM.prototype = {
         this.reg4013 = 0;
         this.data = 0;
     }
-};
+}
 
+class ChannelNoise {
+    constructor(papu) {
+        this.papu = papu;
+    
+        this.isEnabled = null;
+        this.envDecayDisable = null;
+        this.envDecayLoopEnable = null;
+        this.lengthCounterEnable = null;
+        this.envReset = null;
+        this.shiftNow = null;
+        
+        this.lengthCounter = null;
+        this.progTimerCount = null;
+        this.progTimerMax = null;
+        this.envDecayRate = null;
+        this.envDecayCounter = null;
+        this.envVolume = null;
+        this.masterVolume = null;
+        this.shiftReg = 1<<14;
+        this.randomBit = null;
+        this.randomMode = null;
+        this.sampleValue = null;
+        this.accValue=0;
+        this.accCount=1;
+        this.tmp = null;
+        
+        this.reset();
+    }
 
-JSNES.PAPU.ChannelNoise = function(papu) {
-    this.papu = papu;
     
-    this.isEnabled = null;
-    this.envDecayDisable = null;
-    this.envDecayLoopEnable = null;
-    this.lengthCounterEnable = null;
-    this.envReset = null;
-    this.shiftNow = null;
-    
-    this.lengthCounter = null;
-    this.progTimerCount = null;
-    this.progTimerMax = null;
-    this.envDecayRate = null;
-    this.envDecayCounter = null;
-    this.envVolume = null;
-    this.masterVolume = null;
-    this.shiftReg = 1<<14;
-    this.randomBit = null;
-    this.randomMode = null;
-    this.sampleValue = null;
-    this.accValue=0;
-    this.accCount=1;
-    this.tmp = null;
-    
-    this.reset();
-};
-
-JSNES.PAPU.ChannelNoise.prototype = {
-    reset: function() {
+    reset() {
         this.progTimerCount = 0;
         this.progTimerMax = 0;
         this.isEnabled = false;
@@ -1066,18 +1066,18 @@ JSNES.PAPU.ChannelNoise.prototype = {
         this.randomMode = 0;
         this.sampleValue = 0;
         this.tmp = 0;
-    },
+    }
 
-    clockLengthCounter: function(){
+    clockLengthCounter(){
         if (this.lengthCounterEnable && this.lengthCounter>0){
             this.lengthCounter--;
             if (this.lengthCounter === 0) {
                 this.updateSampleValue();
             }
         }
-    },
+    }
 
-    clockEnvDecay: function() {
+    clockEnvDecay() {
         if(this.envReset) {
             // Reset envelope:
             this.envReset = false;
@@ -1096,15 +1096,15 @@ JSNES.PAPU.ChannelNoise.prototype = {
         }
         this.masterVolume = this.envDecayDisable ? this.envDecayRate : this.envVolume;
         this.updateSampleValue();
-    },
+    }
 
-    updateSampleValue: function() {
+    updateSampleValue() {
         if (this.isEnabled && this.lengthCounter>0) {
             this.sampleValue = this.randomBit * this.masterVolume;
         }
-    },
+    }
 
-    writeReg: function(address, value){
+    writeReg(address, value){
         if(address === 0x400C) {
             // Volume/Envelope decay:
             this.envDecayDisable = ((value&0x10) !== 0);
@@ -1125,70 +1125,69 @@ JSNES.PAPU.ChannelNoise.prototype = {
         }
         // Update:
         //updateSampleValue();
-    },
+    }
 
-    setEnabled: function(value){
+    setEnabled(value){
         this.isEnabled = value;
         if (!value) {
             this.lengthCounter = 0;
         }
         this.updateSampleValue();
-    },
+    }
 
-    getLengthStatus: function() {
+    getLengthStatus() {
         return ((this.lengthCounter===0 || !this.isEnabled)?0:1);
     }
-};
+}
 
+class ChannelSquare {
+    constructor(papu, square1) {
+        this.papu = papu;
+    
+        this.dutyLookup = [
+             0, 1, 0, 0, 0, 0, 0, 0,
+             0, 1, 1, 0, 0, 0, 0, 0,
+             0, 1, 1, 1, 1, 0, 0, 0,
+             1, 0, 0, 1, 1, 1, 1, 1
+        ];
+        this.impLookup = [
+             1,-1, 0, 0, 0, 0, 0, 0,
+             1, 0,-1, 0, 0, 0, 0, 0,
+             1, 0, 0, 0,-1, 0, 0, 0,
+            -1, 0, 1, 0, 0, 0, 0, 0
+        ];
+        
+        this.sqr1 = square1;
+        this.isEnabled = null;
+        this.lengthCounterEnable = null;
+        this.sweepActive = null;
+        this.envDecayDisable = null;
+        this.envDecayLoopEnable = null;
+        this.envReset = null;
+        this.sweepCarry = null;
+        this.updateSweepPeriod = null;
+        
+        this.progTimerCount = null;
+        this.progTimerMax = null;
+        this.lengthCounter = null;
+        this.squareCounter = null;
+        this.sweepCounter = null;
+        this.sweepCounterMax = null;
+        this.sweepMode = null;
+        this.sweepShiftAmount = null;
+        this.envDecayRate = null;
+        this.envDecayCounter = null;
+        this.envVolume = null;
+        this.masterVolume = null;
+        this.dutyMode = null;
+        this.sweepResult = null;
+        this.sampleValue = null;
+        this.vol = null;
+        
+        this.reset();
+    }
 
-JSNES.PAPU.ChannelSquare = function(papu, square1) {
-    this.papu = papu;
-    
-    this.dutyLookup = [
-         0, 1, 0, 0, 0, 0, 0, 0,
-         0, 1, 1, 0, 0, 0, 0, 0,
-         0, 1, 1, 1, 1, 0, 0, 0,
-         1, 0, 0, 1, 1, 1, 1, 1
-    ];
-    this.impLookup = [
-         1,-1, 0, 0, 0, 0, 0, 0,
-         1, 0,-1, 0, 0, 0, 0, 0,
-         1, 0, 0, 0,-1, 0, 0, 0,
-        -1, 0, 1, 0, 0, 0, 0, 0
-    ];
-    
-    this.sqr1 = square1;
-    this.isEnabled = null;
-    this.lengthCounterEnable = null;
-    this.sweepActive = null;
-    this.envDecayDisable = null;
-    this.envDecayLoopEnable = null;
-    this.envReset = null;
-    this.sweepCarry = null;
-    this.updateSweepPeriod = null;
-    
-    this.progTimerCount = null;
-    this.progTimerMax = null;
-    this.lengthCounter = null;
-    this.squareCounter = null;
-    this.sweepCounter = null;
-    this.sweepCounterMax = null;
-    this.sweepMode = null;
-    this.sweepShiftAmount = null;
-    this.envDecayRate = null;
-    this.envDecayCounter = null;
-    this.envVolume = null;
-    this.masterVolume = null;
-    this.dutyMode = null;
-    this.sweepResult = null;
-    this.sampleValue = null;
-    this.vol = null;
-    
-    this.reset();
-};
-
-JSNES.PAPU.ChannelSquare.prototype = {
-    reset: function() {
+    reset() {
         this.progTimerCount = 0;
         this.progTimerMax = 0;
         this.lengthCounter = 0;
@@ -1210,18 +1209,18 @@ JSNES.PAPU.ChannelSquare.prototype = {
         this.sweepCarry = false;
         this.envDecayDisable = false;
         this.envDecayLoopEnable = false;
-    },
+    }
 
-    clockLengthCounter: function() {
+    clockLengthCounter() {
         if (this.lengthCounterEnable && this.lengthCounter > 0){
             this.lengthCounter--;
             if (this.lengthCounter === 0) {
                 this.updateSampleValue();
             }
         }
-    },
+    }
 
-    clockEnvDecay: function() {
+    clockEnvDecay() {
         if (this.envReset) {
             // Reset envelope:
             this.envReset = false;
@@ -1239,9 +1238,9 @@ JSNES.PAPU.ChannelSquare.prototype = {
     
         this.masterVolume = this.envDecayDisable ? this.envDecayRate : this.envVolume;
         this.updateSampleValue();
-    },
+    }
 
-    clockSweep: function() {
+    clockSweep() {
         if (--this.sweepCounter<=0) {
         
             this.sweepCounter = this.sweepCounterMax + 1;
@@ -1265,9 +1264,9 @@ JSNES.PAPU.ChannelSquare.prototype = {
             this.updateSweepPeriod = false;
             this.sweepCounter = this.sweepCounterMax + 1;
         }
-    },
+    }
 
-    updateSampleValue: function() {
+    updateSampleValue() {
         if (this.isEnabled && this.lengthCounter>0 && this.progTimerMax>7) {
         
             if (this.sweepMode===0 && (this.progTimerMax + (this.progTimerMax>>this.sweepShiftAmount)) > 4095) {
@@ -1279,9 +1278,9 @@ JSNES.PAPU.ChannelSquare.prototype = {
         }else{
             this.sampleValue = 0;
         }
-    },
+    }
 
-    writeReg: function(address, value){
+    writeReg(address, value){
         var addrAdd = (this.sqr1?0:4);
         if (address === 0x4000 + addrAdd) {
             // Volume/Envelope decay:
@@ -1318,45 +1317,44 @@ JSNES.PAPU.ChannelSquare.prototype = {
         
             this.envReset  = true;
         }
-    },
+    }
 
-    setEnabled: function(value) {
+    setEnabled(value) {
         this.isEnabled = value;
         if (!value) {
             this.lengthCounter = 0;
         }
         this.updateSampleValue();
-    },
+    }
 
-    getLengthStatus: function() {
+    getLengthStatus() {
         return ((this.lengthCounter === 0 || !this.isEnabled) ? 0 : 1);
     }
-};
+}
 
-
-JSNES.PAPU.ChannelTriangle = function(papu) {
-    this.papu = papu;
+class ChannelTriangle {
+    constructor(papu) {
+        this.papu = papu;
     
-    this.isEnabled = null;
-    this.sampleCondition = null;
-    this.lengthCounterEnable = null;
-    this.lcHalt = null;
-    this.lcControl = null;
+        this.isEnabled = null;
+        this.sampleCondition = null;
+        this.lengthCounterEnable = null;
+        this.lcHalt = null;
+        this.lcControl = null;
+        
+        this.progTimerCount = null;
+        this.progTimerMax = null;
+        this.triangleCounter = null;
+        this.lengthCounter = null;
+        this.linearCounter = null;
+        this.lcLoadValue = null;
+        this.sampleValue = null;
+        this.tmp = null;
+        
+        this.reset();
+    }
     
-    this.progTimerCount = null;
-    this.progTimerMax = null;
-    this.triangleCounter = null;
-    this.lengthCounter = null;
-    this.linearCounter = null;
-    this.lcLoadValue = null;
-    this.sampleValue = null;
-    this.tmp = null;
-    
-    this.reset();
-};
-
-JSNES.PAPU.ChannelTriangle.prototype = {
-    reset: function(){
+    reset(){
         this.progTimerCount = 0;
         this.progTimerMax = 0;
         this.triangleCounter = 0;
@@ -1370,18 +1368,18 @@ JSNES.PAPU.ChannelTriangle.prototype = {
         this.lcControl = false;
         this.tmp = 0;
         this.sampleValue = 0xF;
-    },
+    }
 
-    clockLengthCounter: function(){
+    clockLengthCounter(){
         if (this.lengthCounterEnable && this.lengthCounter>0) {
             this.lengthCounter--;
             if (this.lengthCounter===0) {
                 this.updateSampleCondition();
             }
         }
-    },
+    }
 
-    clockLinearCounter: function(){
+    clockLinearCounter(){
         if (this.lcHalt){
             // Load:
             this.linearCounter = this.lcLoadValue;
@@ -1396,17 +1394,17 @@ JSNES.PAPU.ChannelTriangle.prototype = {
             // Clear halt flag:
             this.lcHalt = false;
         }
-    },
+    }
 
-    getLengthStatus: function(){
+    getLengthStatus(){
         return ((this.lengthCounter === 0 || !this.isEnabled)?0:1);
-    },
+    }
 
-    readReg: function(address){
+    readReg(address){
         return 0;
-    },
+    }
 
-    writeReg: function(address, value){
+    writeReg(address, value){
         if (address === 0x4008) {
             // New values for linear counter:
             this.lcControl  = (value&0x80)!==0;
@@ -1430,9 +1428,9 @@ JSNES.PAPU.ChannelTriangle.prototype = {
         }
     
         this.updateSampleCondition();
-    },
+    }
 
-    clockProgrammableTimer: function(nCycles){
+    clockProgrammableTimer(nCycles){
         if (this.progTimerMax>0) {
             this.progTimerCount += nCycles;
             while (this.progTimerMax > 0 && 
@@ -1444,26 +1442,29 @@ JSNES.PAPU.ChannelTriangle.prototype = {
                 }
             }
         }
-    },
+    }
 
-    clockTriangleGenerator: function() {
+    clockTriangleGenerator() {
         this.triangleCounter++;
         this.triangleCounter &= 0x1F;
-    },
+    }
 
-    setEnabled: function(value) {
+    setEnabled(value) {
         this.isEnabled = value;
         if(!value) {
             this.lengthCounter = 0;
         }
         this.updateSampleCondition();
-    },
+    }
 
-    updateSampleCondition: function() {
+    updateSampleCondition() {
         this.sampleCondition = this.isEnabled &&
                 this.progTimerMax > 7 &&
                 this.linearCounter > 0 &&
                 this.lengthCounter > 0;
     }
-};
+}
 
+export {
+    PAPU
+}

@@ -15,14 +15,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { Utils } from './utils.js'
 
-JSNES.DummyUI = function(nes) {
-    this.nes = nes;
-    this.enable = function() {};
-    this.updateStatus = function() {};
-    this.writeAudio = function() {};
-    this.writeFrame = function() {};
-};
+class DummyUI {
+    constructor(nes) {
+        this.nes = nes;
+        this.enable = function() {};
+        this.updateStatus = function() {};
+        this.writeAudio = function() {};
+        this.writeFrame = function() {};
+    }
+}
 
 if (typeof jQuery !== 'undefined') {
     (function($) {
@@ -679,7 +682,7 @@ if (typeof jQuery !== 'undefined') {
                         },
                         complete: function(xhr, status) {
                             var i, data;
-                            if (JSNES.Utils.isIE()) {
+                            if (Utils.isIE()) {
                                 var charCodes = JSNESBinaryToArray(
                                     xhr.responseBody
                                 ).toArray();
@@ -813,4 +816,8 @@ if (typeof jQuery !== 'undefined') {
             return UI;
         };
     })(jQuery);
+}
+
+export {
+    DummyUI
 }

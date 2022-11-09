@@ -16,33 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Keyboard events are bound in the UI
-JSNES.Keyboard = function() {
-    var i;
-    
-    this.keys = {
-        KEY_A: 0,
-        KEY_B: 1,
-        KEY_SELECT: 2,
-        KEY_START: 3,
-        KEY_UP: 4,
-        KEY_DOWN: 5,
-        KEY_LEFT: 6,
-        KEY_RIGHT: 7
-    };
+class Keyboard {
+    constructor() {
+        var i;
+        
+        this.keys = {
+            KEY_A: 0,
+            KEY_B: 1,
+            KEY_SELECT: 2,
+            KEY_START: 3,
+            KEY_UP: 4,
+            KEY_DOWN: 5,
+            KEY_LEFT: 6,
+            KEY_RIGHT: 7
+        };
 
-    this.state1 = new Array(8);
-    for (i = 0; i < this.state1.length; i++) {
-        this.state1[i] = 0x40;
+        this.state1 = new Array(8);
+        for (i = 0; i < this.state1.length; i++) {
+            this.state1[i] = 0x40;
+        }
+        this.state2 = new Array(8);
+        for (i = 0; i < this.state2.length; i++) {
+            this.state2[i] = 0x40;
+        }
     }
-    this.state2 = new Array(8);
-    for (i = 0; i < this.state2.length; i++) {
-        this.state2[i] = 0x40;
-    }
-};
 
-JSNES.Keyboard.prototype = {
-    setKey: function(key, value) {
+    setKey(key, value) {
         switch (key) {
             case 75: this.state1[this.keys.KEY_A] = value; break;      // X 88
             case 74: this.state1[this.keys.KEY_B] = value; break;      // Y (Central European keyboard) 89
@@ -65,21 +64,25 @@ JSNES.Keyboard.prototype = {
             default: return true;
         }
         return false; // preventDefault
-    },
+    }
 
-    keyDown: function(evt) {
+    keyDown(evt) {
         if (!this.setKey(evt.keyCode, 0x41) && evt.preventDefault) {
             evt.preventDefault();
         }
-    },
+    }
     
-    keyUp: function(evt) {
+    keyUp(evt) {
         if (!this.setKey(evt.keyCode, 0x40) && evt.preventDefault) {
             evt.preventDefault();
         }
-    },
+    }
     
-    keyPress: function(evt) {
+    keyPress(evt) {
         evt.preventDefault();
     }
-};
+}
+
+export {
+    Keyboard
+}

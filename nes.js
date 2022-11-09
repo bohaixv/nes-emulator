@@ -16,51 +16,57 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var JSNES = function(opts) {
-    this.opts = {
-        ui: JSNES.DummyUI,
-        swfPath: 'lib/',
-        
-        preferredFrameRate: 60,
-        fpsInterval: 500, // Time between updating FPS in ms
-        showDisplay: true,
+import { CPU } from './cpu.js'
+import { PPU } from './ppu.js'
+import { ROM } from './rom.js'
+import { PAPU } from './papu.js'
+import { DummyUI } from './ui.js'
+import { Keyboard } from './keyboard.js'
 
-        emulateSound: false,
-        sampleRate: 44100, // Sound sample rate in hz
-        
-        CPU_FREQ_NTSC: 1789772.5, //1789772.72727272d;
-        CPU_FREQ_PAL: 1773447.4
-    };
-    if (typeof opts != 'undefined') {
-        var key;
-        for (key in this.opts) {
-            if (typeof opts[key] != 'undefined') {
-                this.opts[key] = opts[key];
+class JSNES {
+    static VERSION = '<%= version %>';
+    isRunning = false
+    fpsFrameCount = 0
+    romData = null
+    constructor(opts) {
+        this.opts = {
+            ui: DummyUI,
+            swfPath: 'lib/',
+            
+            preferredFrameRate: 60,
+            fpsInterval: 500, // Time between updating FPS in ms
+            showDisplay: true,
+    
+            emulateSound: false,
+            sampleRate: 44100, // Sound sample rate in hz
+            
+            CPU_FREQ_NTSC: 1789772.5, //1789772.72727272d;
+            CPU_FREQ_PAL: 1773447.4
+        };
+        if (typeof opts != 'undefined') {
+            var key;
+            for (key in this.opts) {
+                if (typeof opts[key] != 'undefined') {
+                    this.opts[key] = opts[key];
+                }
             }
         }
+        
+        this.frameTime = 1000 / this.opts.preferredFrameRate;
+        
+        this.ui = new this.opts.ui(this);
+        this.cpu = new CPU(this);
+        this.ppu = new PPU(this);
+        this.papu = new PAPU(this);
+        this.mmap = null; // set in loadRom()
+        this.keyboard = new Keyboard();
+        
+        this.ui.updateStatus("Ready to load a ROM.");
     }
-    
-    this.frameTime = 1000 / this.opts.preferredFrameRate;
-    
-    this.ui = new this.opts.ui(this);
-    this.cpu = new JSNES.CPU(this);
-    this.ppu = new JSNES.PPU(this);
-    this.papu = new JSNES.PAPU(this);
-    this.mmap = null; // set in loadRom()
-    this.keyboard = new JSNES.Keyboard();
-    
-    this.ui.updateStatus("Ready to load a ROM.");
-};
 
-JSNES.VERSION = "<%= version %>";
 
-JSNES.prototype = {
-    isRunning: false,
-    fpsFrameCount: 0,
-    romData: null,
-    
     // Resets the system
-    reset: function() {
+    reset() {
         if (this.mmap !== null) {
             this.mmap.reset();
         }
@@ -68,9 +74,9 @@ JSNES.prototype = {
         this.cpu.reset();
         this.ppu.reset();
         this.papu.reset();
-    },
+    }
     
-    start: function() {
+    start() {
         var self = this;
         
         if (this.rom !== null && this.rom.valid) {
@@ -90,9 +96,9 @@ JSNES.prototype = {
         else {
             this.ui.updateStatus("There is no ROM loaded, or it is invalid.");
         }
-    },
+    }
     
-    frame: function() {
+    frame() {
         this.ppu.startFrame();
         var cycles = 0;
         var emulateSound = this.opts.emulateSound;
@@ -150,9 +156,9 @@ JSNES.prototype = {
             }
         }
         this.fpsFrameCount++;
-    },
+    }
     
-    printFps: function() {
+    printFps() {
         var now = +new Date();
         var s = 'Running';
         if (this.lastFpsTime) {
@@ -163,23 +169,23 @@ JSNES.prototype = {
         this.ui.updateStatus(s);
         this.fpsFrameCount = 0;
         this.lastFpsTime = now;
-    },
+    }
     
-    stop: function() {
+    stop() {
         clearInterval(this.frameInterval);
         clearInterval(this.fpsInterval);
         this.isRunning = false;
-    },
+    }
     
-    reloadRom: function() {
+    reloadRom() {
         if (this.romData !== null) {
             this.loadRom(this.romData);
         }
-    },
+    }
     
     // Loads a ROM file into the CPU and PPU.
     // The ROM file is validated first.
-    loadRom: function(data) {
+    loadRom(data) {
         if (this.isRunning) {
             this.stop();
         }
@@ -187,7 +193,7 @@ JSNES.prototype = {
         this.ui.updateStatus("Loading ROM...");
         
         // Load ROM file:
-        this.rom = new JSNES.ROM(this);
+        this.rom = new ROM(this);
         this.rom.load(data);
         
         if (this.rom.valid) {
@@ -206,32 +212,36 @@ JSNES.prototype = {
             this.ui.updateStatus("Invalid ROM!");
         }
         return this.rom.valid;
-    },
+    }
     
-    resetFps: function() {
+    resetFps() {
         this.lastFpsTime = null;
         this.fpsFrameCount = 0;
-    },
+    }
     
-    setFramerate: function(rate){
+    setFramerate(rate){
         this.opts.preferredFrameRate = rate;
         this.frameTime = 1000 / rate;
         this.papu.setSampleRate(this.opts.sampleRate, false);
-    },
+    }
     
-    toJSON: function() {
+    toJSON() {
         return {
             'romData': this.romData,
             'cpu': this.cpu.toJSON(),
             'mmap': this.mmap.toJSON(),
             'ppu': this.ppu.toJSON()
         };
-    },
+    }
     
-    fromJSON: function(s) {
+    fromJSON(s) {
         this.loadRom(s.romData);
         this.cpu.fromJSON(s.cpu);
         this.mmap.fromJSON(s.mmap);
         this.ppu.fromJSON(s.ppu);
     }
-};
+}
+
+export {
+    JSNES
+}

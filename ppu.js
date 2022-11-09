@@ -15,96 +15,97 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { Utils } from './utils.js'
 
-JSNES.PPU = function(nes) {
-    this.nes = nes;
-    
-    // Keep Chrome happy
-    this.vramMem = null;
-    this.spriteMem = null;
-    this.vramAddress = null;
-    this.vramTmpAddress = null;
-    this.vramBufferedReadValue = null;
-    this.firstWrite = null;
-    this.sramAddress = null;
-    this.currentMirroring = null;
-    this.requestEndFrame = null;
-    this.nmiOk = null;
-    this.dummyCycleToggle = null;
-    this.validTileData = null;
-    this.nmiCounter = null;
-    this.scanlineAlreadyRendered = null;
-    this.f_nmiOnVblank = null;   
-    this.f_spriteSize = null;
-    this.f_bgPatternTable = null;
-    this.f_spPatternTable = null;
-    this.f_addrInc = null;
-    this.f_nTblAddress = null;
-    this.f_color = null;
-    this.f_spVisibility = null;
-    this.f_bgVisibility = null;
-    this.f_spClipping = null;
-    this.f_bgClipping = null;
-    this.f_dispType = null;
-    this.cntFV = null;
-    this.cntV = null;
-    this.cntH = null;
-    this.cntVT = null;
-    this.cntHT = null;
-    this.regFV = null;
-    this.regV = null;
-    this.regH = null;
-    this.regVT = null;
-    this.regHT = null;
-    this.regFH = null;
-    this.regS = null;
-    this.curNt = null;
-    this.attrib = null;
-    this.buffer = null;
-    this.prevBuffer = null;
-    this.bgbuffer = null;
-    this.pixrendered = null;
-    
-    this.validTileData = null;
-    this.scantile = null;
-    this.scanline = null;
-    this.lastRenderedScanline = null;
-    this.curX = null;
-    this.sprX = null; 
-    this.sprY = null; 
-    this.sprTile = null; 
-    this.sprCol = null; 
-    this.vertFlip = null; 
-    this.horiFlip = null; 
-    this.bgPriority = null; 
-    this.spr0HitX = null; 
-    this.spr0HitY = null; 
-    this.hitSpr0 = null;
-    this.sprPalette = null;
-    this.imgPalette = null;
-    this.ptTile = null;
-    this.ntable1 = null;
-    this.currentMirroring = null;
-    this.nameTable = null;
-    this.vramMirrorTable = null;
-    this.palTable = null;
-    
-    
-    // Rendering Options:
-    this.showSpr0Hit = false;
-    this.clipToTvSize = true;
-    
-    this.reset();
-};
-
-JSNES.PPU.prototype = {
+class PPU {
     // Status flags:
-    STATUS_VRAMWRITE: 4,
-    STATUS_SLSPRITECOUNT: 5,
-    STATUS_SPRITE0HIT: 6,
-    STATUS_VBLANK: 7,
+    STATUS_VRAMWRITE = 4
+    STATUS_SLSPRITECOUNT = 5
+    STATUS_SPRITE0HIT = 6
+    STATUS_VBLANK = 7
+
+    constructor(nes) {
+        this.nes = nes;
     
-    reset: function() {
+        // Keep Chrome happy
+        this.vramMem = null;
+        this.spriteMem = null;
+        this.vramAddress = null;
+        this.vramTmpAddress = null;
+        this.vramBufferedReadValue = null;
+        this.firstWrite = null;
+        this.sramAddress = null;
+        this.currentMirroring = null;
+        this.requestEndFrame = null;
+        this.nmiOk = null;
+        this.dummyCycleToggle = null;
+        this.validTileData = null;
+        this.nmiCounter = null;
+        this.scanlineAlreadyRendered = null;
+        this.f_nmiOnVblank = null;   
+        this.f_spriteSize = null;
+        this.f_bgPatternTable = null;
+        this.f_spPatternTable = null;
+        this.f_addrInc = null;
+        this.f_nTblAddress = null;
+        this.f_color = null;
+        this.f_spVisibility = null;
+        this.f_bgVisibility = null;
+        this.f_spClipping = null;
+        this.f_bgClipping = null;
+        this.f_dispType = null;
+        this.cntFV = null;
+        this.cntV = null;
+        this.cntH = null;
+        this.cntVT = null;
+        this.cntHT = null;
+        this.regFV = null;
+        this.regV = null;
+        this.regH = null;
+        this.regVT = null;
+        this.regHT = null;
+        this.regFH = null;
+        this.regS = null;
+        this.curNt = null;
+        this.attrib = null;
+        this.buffer = null;
+        this.prevBuffer = null;
+        this.bgbuffer = null;
+        this.pixrendered = null;
+        
+        this.validTileData = null;
+        this.scantile = null;
+        this.scanline = null;
+        this.lastRenderedScanline = null;
+        this.curX = null;
+        this.sprX = null; 
+        this.sprY = null; 
+        this.sprTile = null; 
+        this.sprCol = null; 
+        this.vertFlip = null; 
+        this.horiFlip = null; 
+        this.bgPriority = null; 
+        this.spr0HitX = null; 
+        this.spr0HitY = null; 
+        this.hitSpr0 = null;
+        this.sprPalette = null;
+        this.imgPalette = null;
+        this.ptTile = null;
+        this.ntable1 = null;
+        this.currentMirroring = null;
+        this.nameTable = null;
+        this.vramMirrorTable = null;
+        this.palTable = null;
+        
+        
+        // Rendering Options:
+        this.showSpr0Hit = false;
+        this.clipToTvSize = true;
+        
+        this.reset();
+    }
+
+    reset() {
         var i;
         
         // Memory
@@ -206,7 +207,7 @@ JSNES.PPU.prototype = {
         // Create pattern table tile buffers:
         this.ptTile = new Array(512);
         for (i=0; i<512; i++) {
-            this.ptTile[i] = new JSNES.PPU.Tile();
+            this.ptTile[i] = new Tile();
         }
         
         // Create nametable buffers:
@@ -215,7 +216,7 @@ JSNES.PPU.prototype = {
         this.currentMirroring = -1;
         this.nameTable = new Array(4);
         for (i=0; i<4; i++) {
-            this.nameTable[i] = new JSNES.PPU.NameTable(32, 32, "Nt"+i);
+            this.nameTable[i] = new NameTable(32, 32, "Nt"+i);
         }
         
         // Initialize mirroring lookup table:
@@ -224,16 +225,16 @@ JSNES.PPU.prototype = {
             this.vramMirrorTable[i] = i;
         }
         
-        this.palTable = new JSNES.PPU.PaletteTable();
+        this.palTable = new PaletteTable();
         this.palTable.loadNTSCPalette();
         //this.palTable.loadDefaultPalette();
         
         this.updateControlReg1(0);
         this.updateControlReg2(0);
-    },
+    }
     
     // Sets Nametable mirroring.
-    setMirroring: function(mirroring){
+    setMirroring(mirroring){
     
         if (mirroring == this.currentMirroring) {
             return;
@@ -318,19 +319,18 @@ JSNES.PPU.prototype = {
             
         }   
         
-    },
-    
+    }
     
     // Define a mirrored area in the address lookup table.
     // Assumes the regions don't overlap.
     // The 'to' region is the region that is physically in memory.
-    defineMirrorRegion: function(fromStart, toStart, size){
+    defineMirrorRegion(fromStart, toStart, size){
         for (var i=0;i<size;i++) {
             this.vramMirrorTable[fromStart+i] = toStart+i;
         }
-    },
+    }
     
-    startVBlank: function(){
+    startVBlank(){
         
         // Do NMI:
         this.nes.cpu.requestIrq(this.nes.cpu.IRQ_NMI);
@@ -347,9 +347,9 @@ JSNES.PPU.prototype = {
         
         // Reset scanline counter:
         this.lastRenderedScanline = -1;
-    },
+    }
     
-    endScanline: function(){
+    endScanline(){
         switch (this.scanline) {
             case 19:
                 // Dummy scanline.
@@ -456,9 +456,9 @@ JSNES.PPU.prototype = {
         this.regsToAddress();
         this.cntsToAddress();
         
-    },
+    }
     
-    startFrame: function(){    
+    startFrame(){    
         // Set background color:
         var bgColor=0;
         
@@ -507,9 +507,9 @@ JSNES.PPU.prototype = {
         for (i=0; i<pixrendered.length; i++) {
             pixrendered[i]=65;
         }
-    },
+    }
     
-    endFrame: function(){
+    endFrame(){
         var i, x, y;
         var buffer = this.buffer;
         
@@ -571,9 +571,9 @@ JSNES.PPU.prototype = {
         if (this.nes.opts.showDisplay) {
             this.nes.ui.writeFrame(buffer, this.prevBuffer);
         }
-    },
+    }
     
-    updateControlReg1: function(value){
+    updateControlReg1(value){
         
         this.triggerRendering();
         
@@ -588,9 +588,9 @@ JSNES.PPU.prototype = {
         this.regH = value&1;
         this.regS = (value>>4)&1;
         
-    },
+    }
     
-    updateControlReg2: function(value){
+    updateControlReg2(value){
         
         this.triggerRendering();
         
@@ -605,17 +605,17 @@ JSNES.PPU.prototype = {
             this.palTable.setEmphasis(this.f_color);
         }
         this.updatePalettes();
-    },
+    }
     
-    setStatusFlag: function(flag, value){
+    setStatusFlag(flag, value){
         var n = 1<<flag;
         this.nes.cpu.mem[0x2002] = 
             ((this.nes.cpu.mem[0x2002] & (255-n)) | (value?n:0));
-    },
+    }
     
     // CPU Register $2002:
     // Read the Status Register.
-    readStatusRegister: function(){
+    readStatusRegister(){
         
         var tmp = this.nes.cpu.mem[0x2002];
         
@@ -628,40 +628,40 @@ JSNES.PPU.prototype = {
         // Fetch status data:
         return tmp;
         
-    },
+    }
     
     // CPU Register $2003:
     // Write the SPR-RAM address that is used for sramWrite (Register 0x2004 in CPU memory map)
-    writeSRAMAddress: function(address) {
+    writeSRAMAddress(address) {
         this.sramAddress = address;
-    },
+    }
     
     // CPU Register $2004 (R):
     // Read from SPR-RAM (Sprite RAM).
     // The address should be set first.
-    sramLoad: function() {
+    sramLoad() {
         /*short tmp = sprMem.load(sramAddress);
         sramAddress++; // Increment address
         sramAddress%=0x100;
         return tmp;*/
         return this.spriteMem[this.sramAddress];
-    },
+    }
     
     // CPU Register $2004 (W):
     // Write to SPR-RAM (Sprite RAM).
     // The address should be set first.
-    sramWrite: function(value){
+    sramWrite(value){
         this.spriteMem[this.sramAddress] = value;
         this.spriteRamWriteUpdate(this.sramAddress,value);
         this.sramAddress++; // Increment address
         this.sramAddress %= 0x100;
-    },
+    }
     
     // CPU Register $2005:
     // Write to scroll registers.
     // The first write is the vertical offset, the second is the
     // horizontal offset:
-    scrollWrite: function(value){
+    scrollWrite(value){
         this.triggerRendering();
         
         if (this.firstWrite) {
@@ -678,12 +678,12 @@ JSNES.PPU.prototype = {
         }
         this.firstWrite = !this.firstWrite;
         
-    },
+    }
     
     // CPU Register $2006:
     // Sets the adress used when reading/writing from/to VRAM.
     // The first write sets the high byte, the second the low byte.
-    writeVRAMAddress: function(address){
+    writeVRAMAddress(address){
         
         if (this.firstWrite) {
             
@@ -715,11 +715,11 @@ JSNES.PPU.prototype = {
         if (this.vramAddress < 0x2000) {
             this.nes.mmap.latchAccess(this.vramAddress);
         }   
-    },
+    }
     
     // CPU Register $2007(R):
     // Read from PPU memory. The address should be set first.
-    vramLoad: function(){
+    vramLoad(){
         var tmp;
         
         this.cntsToAddress();
@@ -763,11 +763,11 @@ JSNES.PPU.prototype = {
         this.regsFromAddress();
         
         return tmp;
-    },
-    
+    }
+
     // CPU Register $2007(W):
     // Write to PPU memory. The address should be set first.
-    vramWrite: function(value){
+    vramWrite(value){
         
         this.triggerRendering();
         this.cntsToAddress();
@@ -791,12 +791,12 @@ JSNES.PPU.prototype = {
         this.regsFromAddress();
         this.cntsFromAddress();
         
-    },
+    }
     
     // CPU Register $4014:
     // Write 256 bytes of main memory
     // into Sprite RAM.
-    sramDMA: function(value){
+    sramDMA(value){
         var baseAddress = value * 0x100;
         var data;
         for (var i=this.sramAddress; i < 256; i++) {
@@ -807,10 +807,10 @@ JSNES.PPU.prototype = {
         
         this.nes.cpu.haltCycles(513);
         
-    },
+    }
     
     // Updates the scroll registers from a new VRAM address.
-    regsFromAddress: function(){
+    regsFromAddress(){
         
         var address = (this.vramTmpAddress>>8)&0xFF;
         this.regFV = (address>>4)&7;
@@ -821,10 +821,10 @@ JSNES.PPU.prototype = {
         address = this.vramTmpAddress&0xFF;
         this.regVT = (this.regVT&24) | ((address>>5)&7);
         this.regHT = address&31;
-    },
+    }
     
     // Updates the scroll registers from a new VRAM address.
-    cntsFromAddress: function(){
+    cntsFromAddress(){
         
         var address = (this.vramAddress>>8)&0xFF;
         this.cntFV = (address>>4)&3;
@@ -836,9 +836,9 @@ JSNES.PPU.prototype = {
         this.cntVT = (this.cntVT&24) | ((address>>5)&7);
         this.cntHT = address&31;
         
-    },
+    }
     
-    regsToAddress: function(){
+    regsToAddress(){
         var b1  = (this.regFV&7)<<4;
         b1 |= (this.regV&1)<<3;
         b1 |= (this.regH&1)<<2;
@@ -848,9 +848,9 @@ JSNES.PPU.prototype = {
         b2 |= this.regHT&31;
         
         this.vramTmpAddress = ((b1<<8) | b2)&0x7FFF;
-    },
+    }
     
-    cntsToAddress: function(){
+    cntsToAddress(){
         var b1  = (this.cntFV&7)<<4;
         b1 |= (this.cntV&1)<<3;
         b1 |= (this.cntH&1)<<2;
@@ -860,9 +860,9 @@ JSNES.PPU.prototype = {
         b2 |= this.cntHT&31;
         
         this.vramAddress = ((b1<<8) | b2)&0x7FFF;
-    },
+    }
     
-    incTileCounter: function(count) { 
+    incTileCounter(count) { 
         for (var i=count; i!==0; i--) {
             this.cntHT++;
             if (this.cntHT == 32) {
@@ -882,17 +882,17 @@ JSNES.PPU.prototype = {
                 }
             }
         }
-    },
+    }
     
     // Reads from memory, taking into account
     // mirroring/mapping of address ranges.
-    mirroredLoad: function(address) {
+    mirroredLoad(address) {
         return this.vramMem[this.vramMirrorTable[address]];
-    },
+    }
     
     // Writes to memory, taking into account
     // mirroring/mapping of address ranges.
-    mirroredWrite: function(address, value){
+    mirroredWrite(address, value){
         if (address>=0x3f00 && address<0x3f20) {
             // Palette write mirroring.
             if (address==0x3F00 || address==0x3F10) {
@@ -929,9 +929,9 @@ JSNES.PPU.prototype = {
             }
             
         }
-    },
+    }
     
-    triggerRendering: function(){
+    triggerRendering(){
         if (this.scanline >= 21 && this.scanline <= 260) {
             // Render sprites, and combine:
             this.renderFramePartially(
@@ -942,9 +942,9 @@ JSNES.PPU.prototype = {
             // Set last rendered scanline:
             this.lastRenderedScanline = this.scanline-21;
         }
-    },
+    }
     
-    renderFramePartially: function(startScan, scanCount){
+    renderFramePartially(startScan, scanCount){
         if (this.f_spVisibility == 1) {
             this.renderSpritesPartially(startScan,scanCount,true);
         }
@@ -970,9 +970,9 @@ JSNES.PPU.prototype = {
         }
         
         this.validTileData = false;
-    },
+    }
     
-    renderBgScanline: function(bgbuffer, scan) {
+    renderBgScanline(bgbuffer, scan) {
         var baseTile = (this.regS === 0 ? 0 : 256);
         var destIndex = (scan<<8)-this.regFH;
 
@@ -1082,9 +1082,9 @@ JSNES.PPU.prototype = {
             this.validTileData = false;
             
         }
-    },
+    }
     
-    renderSpritesPartially: function(startscan, scancount, bgPri){
+    renderSpritesPartially(startscan, scancount, bgPri){
         if (this.f_spVisibility === 1) {
             
             for (var i=0;i<64;i++) {
@@ -1181,9 +1181,9 @@ JSNES.PPU.prototype = {
                 }
             }
         }
-    },
+    }
     
-    checkSprite0: function(scan){
+    checkSprite0(scan){
         
         this.spr0HitX = -1;
         this.spr0HitY = -1;
@@ -1324,12 +1324,12 @@ JSNES.PPU.prototype = {
         }
         
         return false;
-    },
+    }
     
     // This will write to PPU memory, and
     // update internally buffered data
     // appropriately.
-    writeMem: function(address, value){
+    writeMem(address, value){
         this.vramMem[address] = value;
         
         // Update internally buffered data:
@@ -1364,11 +1364,11 @@ JSNES.PPU.prototype = {
         else if (address >=0x3f00 && address <0x3f20) {
             this.updatePalettes();
         }
-    },
+    }
     
     // Reads data from $3f00 to $f20 
     // into the two buffered palettes.
-    updatePalettes: function(){
+    updatePalettes(){
         var i;
         
         for (i = 0; i < 16; i++) {
@@ -1395,12 +1395,12 @@ JSNES.PPU.prototype = {
                 );
             }
         }
-    },
+    }
     
     // Updates the internal pattern
     // table buffers with this new byte.
     // In vNES, there is a version of this with 4 arguments which isn't used.
-    patternWrite: function(address, value){
+    patternWrite(address, value){
         var tileIndex = Math.floor(address / 16);
         var leftOver = address%16;
         if (leftOver<8) {
@@ -1417,28 +1417,28 @@ JSNES.PPU.prototype = {
                 value
             );
         }
-    },
+    }
 
     // Updates the internal name table buffers
     // with this new byte.
-    nameTableWrite: function(index, address, value){
+    nameTableWrite(index, address, value){
         this.nameTable[index].tile[address] = value;
         
         // Update Sprite #0 hit:
         //updateSpr0Hit();
         this.checkSprite0(this.scanline-20);
-    },
+    }
     
     // Updates the internal pattern
     // table buffers with this new attribute
     // table byte.
-    attribTableWrite: function(index, address, value){
+    attribTableWrite(index, address, value){
         this.nameTable[index].writeAttrib(address,value);
-    },
+    }
     
     // Updates the internally buffered sprite
     // data with this new byte of info.
-    spriteRamWriteUpdate: function(address, value) {
+    spriteRamWriteUpdate(address, value) {
         var tIndex = Math.floor(address / 4);
         
         if (tIndex === 0) {
@@ -1466,16 +1466,16 @@ JSNES.PPU.prototype = {
             // X coordinate
             this.sprX[tIndex] = value;
         }
-    },
+    }
     
-    doNMI: function() {
+    doNMI() {
         // Set VBlank flag:
         this.setStatusFlag(this.STATUS_VBLANK,true);
         //nes.getCpu().doNonMaskableInterrupt();
         this.nes.cpu.requestIrq(this.nes.cpu.IRQ_NMI);
-    },
+    }
     
-    JSON_PROPERTIES: [
+    JSON_PROPERTIES = [
         // Memory
         'vramMem', 'spriteMem',
         // Counters
@@ -1505,11 +1505,11 @@ JSNES.PPU.prototype = {
         // Misc
         'requestEndFrame', 'nmiOk', 'dummyCycleToggle', 'nmiCounter', 
         'validTileData', 'scanlineAlreadyRendered'
-    ],
+    ]
     
-    toJSON: function() {
+    toJSON() {
         var i;
-        var state = JSNES.Utils.toJSON(this);
+        var state = Utils.toJSON(this);
         
         state.nameTable = [];
         for (i = 0; i < this.nameTable.length; i++) {
@@ -1522,12 +1522,12 @@ JSNES.PPU.prototype = {
         }
         
         return state;
-    },
+    }
     
-    fromJSON: function(state) {
+    fromJSON(state) {
         var i;
         
-        JSNES.Utils.fromJSON(this, state);
+        Utils.fromJSON(this, state);
         
         for (i = 0; i < this.nameTable.length; i++) {
             this.nameTable[i].fromJSON(state.nameTable[i]);
@@ -1542,27 +1542,27 @@ JSNES.PPU.prototype = {
             this.spriteRamWriteUpdate(i, this.spriteMem[i]);
         }
     }
-};
+}
 
-JSNES.PPU.NameTable = function(width, height, name) {   
-    this.width = width;
-    this.height = height;
-    this.name = name;
-    
-    this.tile = new Array(width*height);
-    this.attrib = new Array(width*height);
-};
+class NameTable {
+    constructor(width, height, name) {
+        this.width = width;
+        this.height = height;
+        this.name = name;
+        
+        this.tile = new Array(width*height);
+        this.attrib = new Array(width*height);
+    }
 
-JSNES.PPU.NameTable.prototype = {
-    getTileIndex: function(x, y){
+    getTileIndex(x, y){
         return this.tile[y*this.width+x];
-    },
+    }
 
-    getAttrib: function(x, y){
+    getAttrib(x, y){
         return this.attrib[y*this.width+x];
-    },
+    }
 
-    writeAttrib: function(index, value){
+    writeAttrib(index, value){
         var basex = (index % 8) * 4;
         var basey = Math.floor(index / 8) * 4;
         var add;
@@ -1582,46 +1582,44 @@ JSNES.PPU.NameTable.prototype = {
                 }
             }
         }
-    },
+    }
     
-    toJSON: function() {
+    toJSON() {
         return {
             'tile': this.tile,
             'attrib': this.attrib
         };
-    },
+    }
     
-    fromJSON: function(s) {
+    fromJSON(s) {
         this.tile = s.tile;
         this.attrib = s.attrib;
     }
-};
+}
 
-
-JSNES.PPU.PaletteTable = function() {
-    this.curTable = new Array(64);
-    this.emphTable = new Array(8);
-    this.currentEmph = -1;
-};
-
-JSNES.PPU.PaletteTable.prototype = {
-    reset: function() {
+class PaletteTable {
+    constructor() {
+        this.curTable = new Array(64);
+        this.emphTable = new Array(8);
+        this.currentEmph = -1;
+    }
+    reset() {
         this.setEmphasis(0);
-    },
+    }
     
-    loadNTSCPalette: function() {
+    loadNTSCPalette() {
         this.curTable = [0x525252, 0xB40000, 0xA00000, 0xB1003D, 0x740069, 0x00005B, 0x00005F, 0x001840, 0x002F10, 0x084A08, 0x006700, 0x124200, 0x6D2800, 0x000000, 0x000000, 0x000000, 0xC4D5E7, 0xFF4000, 0xDC0E22, 0xFF476B, 0xD7009F, 0x680AD7, 0x0019BC, 0x0054B1, 0x006A5B, 0x008C03, 0x00AB00, 0x2C8800, 0xA47200, 0x000000, 0x000000, 0x000000, 0xF8F8F8, 0xFFAB3C, 0xFF7981, 0xFF5BC5, 0xFF48F2, 0xDF49FF, 0x476DFF, 0x00B4F7, 0x00E0FF, 0x00E375, 0x03F42B, 0x78B82E, 0xE5E218, 0x787878, 0x000000, 0x000000, 0xFFFFFF, 0xFFF2BE, 0xF8B8B8, 0xF8B8D8, 0xFFB6FF, 0xFFC3FF, 0xC7D1FF, 0x9ADAFF, 0x88EDF8, 0x83FFDD, 0xB8F8B8, 0xF5F8AC, 0xFFFFB0, 0xF8D8F8, 0x000000, 0x000000];
         this.makeTables();
         this.setEmphasis(0);
-    },
+    }
     
-    loadPALPalette: function() {
+    loadPALPalette() {
         this.curTable = [0x525252, 0xB40000, 0xA00000, 0xB1003D, 0x740069, 0x00005B, 0x00005F, 0x001840, 0x002F10, 0x084A08, 0x006700, 0x124200, 0x6D2800, 0x000000, 0x000000, 0x000000, 0xC4D5E7, 0xFF4000, 0xDC0E22, 0xFF476B, 0xD7009F, 0x680AD7, 0x0019BC, 0x0054B1, 0x006A5B, 0x008C03, 0x00AB00, 0x2C8800, 0xA47200, 0x000000, 0x000000, 0x000000, 0xF8F8F8, 0xFFAB3C, 0xFF7981, 0xFF5BC5, 0xFF48F2, 0xDF49FF, 0x476DFF, 0x00B4F7, 0x00E0FF, 0x00E375, 0x03F42B, 0x78B82E, 0xE5E218, 0x787878, 0x000000, 0x000000, 0xFFFFFF, 0xFFF2BE, 0xF8B8B8, 0xF8B8D8, 0xFFB6FF, 0xFFC3FF, 0xC7D1FF, 0x9ADAFF, 0x88EDF8, 0x83FFDD, 0xB8F8B8, 0xF5F8AC, 0xFFFFB0, 0xF8D8F8, 0x000000, 0x000000];
         this.makeTables();
         this.setEmphasis(0);
-    },
+    }
     
-    makeTables: function(){
+    makeTables(){
         var r, g, b, col, i, rFactor, gFactor, bFactor;
         
         // Calculate a table for each possible emphasis setting:
@@ -1656,38 +1654,38 @@ JSNES.PPU.PaletteTable.prototype = {
                 this.emphTable[emph][i] = this.getRgb(r, g, b);
             }
         }
-    },
+    }
     
-    setEmphasis: function(emph){
+    setEmphasis(emph){
         if (emph != this.currentEmph) {
             this.currentEmph = emph;
             for (var i = 0; i < 64; i++) {
                 this.curTable[i] = this.emphTable[emph][i];
             }
         }
-    },
+    }
     
-    getEntry: function(yiq){
+    getEntry(yiq){
         return this.curTable[yiq];
-    },
+    }
     
-    getRed: function(rgb){
+    getRed(rgb){
         return (rgb>>16)&0xFF;
-    },
+    }
     
-    getGreen: function(rgb){
+    getGreen(rgb){
         return (rgb>>8)&0xFF;
-    },
+    }
     
-    getBlue: function(rgb){
+    getBlue(rgb){
         return rgb&0xFF;
-    },
+    }
     
-    getRgb: function(r, g, b){
+    getRgb(r, g, b){
         return ((r<<16)|(g<<8)|(b));
-    },
+    }
     
-    loadDefaultPalette: function(){
+    loadDefaultPalette(){
         this.curTable[ 0] = this.getRgb(117,117,117);
         this.curTable[ 1] = this.getRgb( 39, 27,143);
         this.curTable[ 2] = this.getRgb(  0,  0,171);
@@ -1756,35 +1754,35 @@ JSNES.PPU.PaletteTable.prototype = {
         this.makeTables();
         this.setEmphasis(0);
     }
-};
+}
 
-JSNES.PPU.Tile = function() {
-    // Tile data:
-    this.pix = new Array(64);
-    
-    this.fbIndex = null;
-    this.tIndex = null;
-    this.x = null;
-    this.y = null;
-    this.w = null;
-    this.h = null;
-    this.incX = null;
-    this.incY = null;
-    this.palIndex = null;
-    this.tpri = null;
-    this.c = null;
-    this.initialized = false;
-    this.opaque = new Array(8);
-};
-    
-JSNES.PPU.Tile.prototype = {
-    setBuffer: function(scanline){
+class Tile {
+    constructor() {
+        // Tile data:
+        this.pix = new Array(64);
+        
+        this.fbIndex = null;
+        this.tIndex = null;
+        this.x = null;
+        this.y = null;
+        this.w = null;
+        this.h = null;
+        this.incX = null;
+        this.incY = null;
+        this.palIndex = null;
+        this.tpri = null;
+        this.c = null;
+        this.initialized = false;
+        this.opaque = new Array(8);
+    }
+
+    setBuffer(scanline){
         for (this.y=0;this.y<8;this.y++) {
             this.setScanline(this.y,scanline[this.y],scanline[this.y+8]);
         }
-    },
+    }
     
-    setScanline: function(sline, b1, b2){
+    setScanline(sline, b1, b2){
         this.initialized = true;
         this.tIndex = sline<<3;
         for (this.x = 0; this.x < 8; this.x++) {
@@ -1794,9 +1792,9 @@ JSNES.PPU.Tile.prototype = {
                 this.opaque[sline] = false;
             }
         }
-    },
+    }
     
-    render: function(buffer, srcx1, srcy1, srcx2, srcy2, dx, dy, palAdd, palette, flipHorizontal, flipVertical, pri, priTable) {
+    render(buffer, srcx1, srcy1, srcx2, srcy2, dx, dy, palAdd, palette, flipHorizontal, flipVertical, pri, priTable) {
 
         if (dx<-7 || dx>=256 || dy<-7 || dy>=240) {
             return;
@@ -1913,21 +1911,26 @@ JSNES.PPU.Tile.prototype = {
         
         }
     
-    },
+    }
     
-    isTransparent: function(x, y){
+    isTransparent(x, y){
         return (this.pix[(y << 3) + x] === 0);
-    },
+    }
     
-    toJSON: function() {
+    toJSON() {
         return {
             'opaque': this.opaque,
             'pix': this.pix
         };
-    },
+    }
 
-    fromJSON: function(s) {
+    fromJSON(s) {
         this.opaque = s.opaque;
         this.pix = s.pix;
     }
-};
+}
+
+export {
+    PPU,
+    Tile
+}

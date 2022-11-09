@@ -16,7 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-JSNES.Utils = {
+const Utils = {
+            
     copyArrayElements: function(src, srcPos, dest, destPos, length) {
         for (var i = 0; i < length; ++i) {
             dest[destPos + i] = src[srcPos + i];
@@ -48,5 +49,8 @@ JSNES.Utils = {
     isIE: function() {
         return (/msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent));
     }
-};
+}
 
+export {
+    Utils
+}
